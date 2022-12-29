@@ -131,7 +131,7 @@ class IndexBuilder(object):
         conn = sqlite3.connect(db_name)
         c = conn.cursor()
         c.execute(
-            ''' CREATE TABLE MDX_INDEX
+            ''' CREATE TABLE IF NOT EXISTS MDX_INDEX
                (key_text text not null,
                 file_pos integer,
                 compressed_size integer,

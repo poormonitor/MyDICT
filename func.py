@@ -61,7 +61,7 @@ def getAllResources(path: str) -> Dict[str, str]:
             resources.update(getAllResources(cur_path))
         else:
             bsname = os.path.basename(cur_path)
-            resources[bsname] = cur_path
+            resources[bsname] = os.path.normpath(cur_path)
 
     return resources
 
@@ -161,8 +161,8 @@ def getResource(d: int, f: str) -> str:
     path = getDict(d).path
     builder = IndexBuilder(path)
     try:
-        rs = builder.mdd_lookup(os.path.normcase("/" + f))[0]
-    except AttributeError:
+        rs = builder.mdd_lookup(os.path.normpath("/" + f))[0]
+    except:
         rs = None
     return rs
 
@@ -170,7 +170,9 @@ def getResource(d: int, f: str) -> str:
 def fixCSS(d: int, css: str) -> str:
     content = re.sub(
         r"url\(\"(.*)\"\)",
-        lambda x: 'url("/api/resource?d=%d&r=%s")' % (d, x.group(1)),
+        lambda x: 'url("/api/resource?d=%d&r=%s")' % (d, x.group(1))
+        if not x.group(1).startswith("data:")
+        else 'url("%s")' % x.group(1),
         css,
     )
     return content
@@ -218,14 +220,37 @@ def fixRedirect(d: int, contents: List[str]) -> List[str]:
 
 def fixResource(d: int, content: str) -> str:
     soup = BeautifulSoup(content, "lxml")
+
     for script in soup.find_all("script"):
-        script["src"] = "$MYDICT_API/resource?d=%d&r=%s" % (d, script["src"])
+        script["src"] = (
+            "$MYDICT_API/resource?d=%d&r=%s" % (d, script["src"])
+            if script.get("src", None)
+            else ""
+        )
+
     for link in soup.find_all("link", rel="stylesheet"):
-        link["href"] = "$MYDICT_API/resource?d=%d&r=%s" % (d, link["href"])
+        link["href"] = (
+            "$MYDICT_API/resource?d=%d&r=%s" % (d, link["href"])
+            if link.get("href", None)
+            else ""
+        )
+
     for img in soup.find_all("img"):
-        img["src"] = "$MYDICT_API/resource?d=%d&r=%s" % (d, img["src"])
+        img["src"] = (
+            "$MYDICT_API/resource?d=%d&r=%s" % (d, img["src"])
+            if (src := img.get("src", None)) and not src.startswith("data:")
+            else src
+        )
+        
     soup.body["class"] = "main-content"
+
+    if not soup.head:
+        soup.html.insert_before(soup.new_tag("head"))
+
     soup.head.append(
-        soup.new_tag("link", rel="stylesheet", type="text/css", href="universal.css")
+        soup.new_tag(
+            "link", rel="stylesheet", type="text/css", href="universal.css"
+        )
     )
+
     return str(soup)

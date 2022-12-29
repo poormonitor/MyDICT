@@ -1,3 +1,3 @@
-from func import queryDict, fixResource
+from func import *
 
-print(fixResource(0, queryDict("test", 0)[0]))
+print(getDict(2).resources)

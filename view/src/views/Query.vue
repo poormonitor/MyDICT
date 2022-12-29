@@ -57,6 +57,7 @@ const fetchThumbail = async (d) => {
 }
 
 const fetchContent = () => {
+    loadingContent.value = true
     axios.get("/query", {
         params: {
             d: queryKey.currentDict,
@@ -64,7 +65,8 @@ const fetchContent = () => {
         }
     }).then((response) => {
         if (response.data.result) {
-            content.value = response.data.result.map(x => x.replace("$MYDICT_API", import.meta.env.VITE_API_URL))
+            let result = response.data.result
+            content.value = result.map(x => x.replaceAll("$MYDICT_API", import.meta.env.VITE_API_URL))
             loadingContent.value = false
         }
     })
@@ -74,7 +76,7 @@ const menuOptions = computed(() => {
     return availableDicts.value.map((item) => ({
         label: () => h(NEllipsis, null, { default: () => item.name }),
         key: item.order,
-        icon: () => h(NAvatar, { size: "small", src: item.thumbail })
+        icon: () => h(NAvatar, { size: "small", src: item.thumbail, objectFit: "scale-down", color: "#ffffff00" })
     }))
 })
 
@@ -126,12 +128,14 @@ watch(queryKey, () => {
     <n-layout has-sider class="main-container">
         <n-layout-sider bordered collapse-mode="width" :collapsed-width="64" :width="240" :collapsed="collapsed"
             show-trigger @collapse="collapsed = true" @expand="collapsed = false">
-            <n-menu :collapsed-width="64" :collapsed="collapsed" :collapsed-icon-size="22"
-                v-model:value="queryKey.currentDict" :options="menuOptions" />
+            <n-scrollbar>
+                <n-menu :collapsed-width="64" :collapsed="collapsed" :collapsed-icon-size="22"
+                    v-model:value="queryKey.currentDict" :options="menuOptions" />
+            </n-scrollbar>
         </n-layout-sider>
         <n-layout>
             <div class="h-full">
-                <div class="h-full" v-if="content">
+                <div class="h-full" v-if="!loadingContent && content">
                     <iframe width="100%" height="100%" :srcdoc="t" v-for="t in content"></iframe>
                 </div>
                 <div class="main-content" v-else-if="loadingContent">
