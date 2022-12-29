@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.main-content {
+  @apply px-6 py-4 md:px-12 md:py-6 lg:px-20 lg:py-10;
+}
