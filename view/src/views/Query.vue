@@ -12,6 +12,7 @@ const router = useRouter();
 const allDicts = ref([]);
 const availableDicts = ref([]);
 
+const currentDict = ref(null);
 const searchKeyword = ref("");
 const queryKeyword = ref("");
 const backKeyword = ref([]);
@@ -19,7 +20,6 @@ const backKeyword = ref([]);
 const hint = ref([]);
 const lastCheck = ref("");
 
-const currentDict = ref(0);
 const content = ref("");
 
 const collapsed = ref(window.innerWidth <= 768);
@@ -92,7 +92,7 @@ const fetchThumbail = async (d) => {
 
 const fetchContent = () => {
     loadingContent.value = true;
-    if (!queryKeyword.value) {
+    if (!queryKeyword.value || !currentDict.value) {
         return;
     }
     let params = {
