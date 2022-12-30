@@ -1,7 +1,7 @@
 <script setup>
 import { Search } from "@vicons/fa";
 import { ref, watch, onMounted, computed, h } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
 import axios from "../axios";
 import { NAvatar, NEllipsis } from "naive-ui";
 import { Buffer } from "buffer";
@@ -145,6 +145,10 @@ onMounted(() => {
         backKeyword.value = [route.query.back];
         goQuery();
     }
+});
+
+onBeforeRouteUpdate((to, from) => {
+    document.title = to.query.s ? to.query.s + " - MyDICT" : "MyDICT";
 });
 
 window.onresize = () => {
