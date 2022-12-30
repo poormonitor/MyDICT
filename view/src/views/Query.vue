@@ -12,7 +12,7 @@ const router = useRouter();
 const allDicts = ref([]);
 const availableDicts = ref([]);
 
-const currentDict = ref(null);
+const currentDict = ref();
 const searchKeyword = ref("");
 const queryKeyword = ref("");
 const backKeyword = ref([]);
@@ -65,11 +65,9 @@ const goQuery = async () => {
                 availableDicts.value = allDicts.value.filter((item) =>
                     response.data.lst.includes(item.order)
                 );
-                if (!availableDicts.value.includes(currentDict.value)) {
-                    currentDict.value = Math.min.apply(
-                        Math,
-                        availableDicts.value.map((item) => item.order)
-                    );
+                let availables = availableDicts.value.map((item) => item.order);
+                if (!availables.includes(currentDict.value)) {
+                    currentDict.value = Math.min(...availables);
                 }
                 fetchContent();
             }
@@ -92,7 +90,7 @@ const fetchThumbail = async (d) => {
 
 const fetchContent = () => {
     loadingContent.value = true;
-    if (!queryKeyword.value || !currentDict.value) {
+    if (!queryKeyword.value) {
         return;
     }
     let params = {
@@ -162,12 +160,12 @@ window.addEventListener("message", (ev) => {
             backKeyword.value.pop();
         }
         queryKeyword.value = ev.data.go;
+        fetchContent()
     }
 });
 
 watch(searchKeyword, loadHint);
 
-watch(queryKeyword, fetchContent);
 watch(currentDict, () => {
     backKeyword.value = [];
     queryKeyword.value = searchKeyword.value;
