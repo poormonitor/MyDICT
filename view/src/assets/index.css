@@ -3,5 +3,9 @@
 @tailwind utilities;
 
 .main-content {
-  @apply px-6 py-4 md:px-12 md:py-6 lg:px-20 lg:py-10;
+    @apply px-6 py-4 md:px-12 md:py-6 lg:px-20 lg:py-10;
+}
+
+.gradient-title {
+    @apply text-transparent bg-clip-text bg-gradient-to-bl from-indigo-600 via-violet-500 to-purple-400;
 }

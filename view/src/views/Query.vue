@@ -160,7 +160,7 @@ window.addEventListener("message", (ev) => {
             backKeyword.value.pop();
         }
         queryKeyword.value = ev.data.go;
-        fetchContent()
+        fetchContent();
     }
 });
 
@@ -174,16 +174,17 @@ watch(currentDict, () => {
 </script>
 
 <template>
-    <div class="pt-6 px-8 h-16">
-        <n-space align="baseline">
-            <n-gradient-text type="info" class="text-3xl font-bold">
-                MyDICT
-            </n-gradient-text>
+    <div class="hidden md:block pt-4 pb-2 px-8 h-16">
+        <div class="flex items-baseline gap-x-4">
+            <span class="text-3xl font-bold gradient-title"> MyDICT </span>
             <span class="hidden sm:inline">A universal dictionary tool</span>
-        </n-space>
+        </div>
     </div>
-    <div class="flex justify-center mb-6 mt-2 sm:mb-4 sm:mt-4 h-12">
-        <n-space class="items-center">
+    <div class="flex justify-center pb-1 pt-3 md:pb-3 md:pt-1 h-16">
+        <div class="flex gap-x-2 md:gap-x-4 lg:gap-x-6 items-center">
+            <span class="text-xl font-bold md:hidden gradient-title">
+                MyDICT
+            </span>
             <span class="text-lg hidden md:inline">Query</span>
             <n-auto-complete
                 v-model:value="searchKeyword"
@@ -202,9 +203,10 @@ watch(currentDict, () => {
                 >
                     <n-input
                         :value="slotValue"
-                        size="large"
                         placeholder="Press Enter to Go"
-                        class="w-64 lg:w-80"
+                        size="large"
+                        autosize
+                        class="w-48 md:w-60 lg:w-80"
                         @keyup.enter="goQuery"
                         @input="handleInput"
                         @focus="handleFocus"
@@ -216,7 +218,7 @@ watch(currentDict, () => {
                 </template>
             </n-auto-complete>
             <n-button @click="goQuery">Go</n-button>
-        </n-space>
+        </div>
     </div>
     <n-divider class="divider-line" />
     <n-layout has-sider class="main-container">
@@ -266,7 +268,13 @@ watch(currentDict, () => {
 
 <style>
 .main-container {
-    height: calc(100vh - 4rem - 4rem - 1rem - 1px);
+    height: calc(100vh - 6rem - 1px);
+}
+
+@media (min-width: 768px) {
+    .main-container {
+        height: calc(100vh - 9rem - 1px);
+    }
 }
 
 .divider-line {

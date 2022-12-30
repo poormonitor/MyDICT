@@ -4,7 +4,6 @@ import router from './router'
 
 import './assets/index.css'
 import 'vfonts/Inter.css'
-import 'vfonts/FiraCode.css'
 
 const app = createApp(App)
 
