@@ -1,13 +1,16 @@
 import mimetypes
 import os
 import re
+import tempfile
+import urllib.parse
 from functools import cache, lru_cache
 from typing import Dict, List, Optional
-import chardet
 
+import chardet
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
-from fastapi.responses import FileResponse, Response, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, Response
+from pyffmpeg import FFmpeg
 
 from mdict.mdict_query import IndexBuilder
 
@@ -37,7 +40,7 @@ class Dictionary:
     ):
         self.path = path
         self.builder = builder
-        self.name = builder._title
+        self.name = urllib.parse.unquote(builder._title)
         self.version = builder._version
         self.description = builder._description
         self.dirname = dirname
@@ -137,6 +140,18 @@ def getThumbail(d: int) -> str:
     return dicts[d].thumbail
 
 
+def fixRedirect(d: int, contents: List[str]) -> List[str]:
+    result = []
+    for content in contents:
+        if content.startswith("@@@LINK"):
+            new_word = content.replace("@@@LINK=", "").strip()
+            new_rs = queryDict(new_word, d)
+            result += new_rs
+        else:
+            result.append(content)
+    return result
+
+
 @lru_cache(65535)
 def queryDict(s: str, d: int) -> List[str]:
     builder = getDict(d).builder
@@ -173,7 +188,7 @@ def getHints(s: str) -> List[str]:
 def getResource(d: int, f: str) -> str:
     builder = getDict(d).builder
     try:
-        rs = builder.mdd_lookup(os.path.normpath("/" + f))[0]
+        rs = builder.mdd_lookup(os.path.normpath("/" + f).replace("/", "\\"))[0]
     except:
         rs = None
     return rs
@@ -190,9 +205,31 @@ def fixCSS(d: int, css: str) -> str:
     return content
 
 
+def fixSPX(a: bytes) -> bytes:
+    ff = FFmpeg()
+
+    tempin = tempfile.NamedTemporaryFile(suffix=".spx", delete=False)
+    tempout = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+
+    tempin.write(a)
+    tempin.close()
+    ff.convert(tempin.name, tempout.name)
+    b = tempout.read()
+    tempout.close()
+
+    os.remove(tempin.name)
+    os.remove(tempout.name)
+
+    return b
+
+
 @cache
 def fetchStatic(d: int, f: str) -> Response:
     headers = {"Cache-Control": "public, max-age=2592000"}
+
+    if f.endswith(".spx.mp3"):
+        f = f.replace(".mp3", "")
+
     resource = getResource(d, f)
     if resource:
         mime = mimetypes.guess_type(f)[0]
@@ -203,6 +240,10 @@ def fetchStatic(d: int, f: str) -> Response:
         if f.endswith(".css"):
             resource = fixCSS(d, resource.decode(encoding=encoding))
             mime = "text/css"
+
+        if f.endswith(".spx"):
+            resource = fixSPX(resource)
+            mime = "audio/mp3"
 
         return Response(content=resource, media_type=mime, headers=headers)
 
@@ -216,18 +257,6 @@ def fetchStatic(d: int, f: str) -> Response:
         return FileResponse(path=dictionary.resources[f], headers=headers)
 
     raise HTTPException(status_code=404, detail="Resource not found.")
-
-
-def fixRedirect(d: int, contents: List[str]) -> List[str]:
-    result = []
-    for content in contents:
-        if content.startswith("@@@LINK"):
-            new_word = content.replace("@@@LINK=", "").strip()
-            new_rs = queryDict(new_word, d)
-            result += new_rs
-        else:
-            result.append(content)
-    return result
 
 
 def fixResource(d: int, content: str) -> str:
@@ -255,12 +284,17 @@ def fixResource(d: int, content: str) -> str:
         )
 
     for a in soup.find_all("a"):
-        if a.get("href", None) and a["href"].startswith("sound://"):
-            new_url = "$MYDICT_API/resource?d=%d&r=%s" % (
-                d,
-                a["href"].replace("sound://", ""),
-            )
-            a["href"] = "javascript:new Audio('%s').play()" % (new_url)
+        if a.get("href", None):
+            if a["href"].startswith("sound://"):
+                file = a["href"].replace("sound://", "")
+                if a["href"].endswith(".spx"):
+                    file = file + ".mp3"
+                new_url = "$MYDICT_API/resource?d=%d&r=%s" % (d, file)
+                a["href"] = "javascript:new Audio('%s').play()" % (new_url)
+            elif a["href"].startswith("entry://"):
+                a["href"] = "javascript:window.parent.postMessage({go: '%s'})" % a[
+                    "href"
+                ].replace("entry://", "")
 
     soup.body["class"] = "main-content"
 
@@ -271,6 +305,23 @@ def fixResource(d: int, content: str) -> str:
         soup.new_tag("link", rel="stylesheet", type="text/css", href="universal.css")
     )
 
+    return str(soup)
+
+
+def addBack(content: str, back: str) -> str:
+    soup = BeautifulSoup(content, "lxml")
+    navi = soup.new_tag("div")
+    navi.append(
+        soup.new_tag(
+            "a",
+            **{
+                "href": "javascript:window.parent.postMessage({go: '%s', back: true})" % back,
+                "class": "goBack",
+            },
+        )
+    )
+    navi.a.string = "Go Back"
+    soup.body.insert_before(navi)
     return str(soup)
 
 

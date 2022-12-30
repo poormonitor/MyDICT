@@ -1,52 +1,72 @@
 <script setup>
 import { Search } from "@vicons/fa";
 import { ref, watch, onMounted, computed, h } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import axios from "../axios";
 import { NAvatar, NEllipsis } from "naive-ui";
 import { Buffer } from "buffer";
 
-const searchKeyword = ref("");
+const route = useRoute();
+const router = useRouter();
+
 const allDicts = ref([]);
 const availableDicts = ref([]);
-const content = ref("");
+
+const searchKeyword = ref("");
+const queryKeyword = ref("");
+const backKeyword = ref([]);
+
 const hint = ref([]);
-const queryKey = reactive({ queryKeyword: "", currentDict: 0 });
+const lastCheck = ref("");
+
+const currentDict = ref(0);
+const content = ref("");
+
 const collapsed = ref(window.innerWidth <= 768);
+
 const loadingContent = ref(false);
 const loadingHint = ref(false);
 
-const loadHint = () => {
+const loadHint = async () => {
+    hint.value = [];
+    if (!searchKeyword.value) {
+        return;
+    }
     loadingHint.value = true;
-    axios
+    let currentKey = searchKeyword.value;
+    await axios
         .get("/hint", {
-            params: { s: searchKeyword.value },
+            params: { s: currentKey },
         })
         .then((response) => {
-            if (response.data.lst) {
+            if (response.data.lst && currentKey == searchKeyword.value) {
                 loadingHint.value = false;
                 hint.value = response.data.lst;
+                lastCheck.value = searchKeyword.value;
             }
         });
 };
 
-const goQuery = () => {
-    loadHint();
+const goQuery = async () => {
+    if (queryKeyword.value != lastCheck.value) {
+        await loadHint();
+    }
     if (!hint.value.includes(searchKeyword.value)) {
         return;
     }
     loadingContent.value = true;
-    queryKey.queryKeyword = searchKeyword.value;
+    queryKeyword.value = searchKeyword.value;
     axios
         .get("/available", {
-            params: { s: queryKey.queryKeyword },
+            params: { s: queryKeyword.value },
         })
         .then((response) => {
             if (response.data.lst) {
                 availableDicts.value = allDicts.value.filter((item) =>
                     response.data.lst.includes(item.order)
                 );
-                if (!availableDicts.value.includes(queryKey.currentDict)) {
-                    queryKey.currentDict = Math.min.apply(
+                if (!availableDicts.value.includes(currentDict.value)) {
+                    currentDict.value = Math.min.apply(
                         Math,
                         availableDicts.value.map((item) => item.order)
                     );
@@ -72,12 +92,20 @@ const fetchThumbail = async (d) => {
 
 const fetchContent = () => {
     loadingContent.value = true;
+    if (!queryKeyword.value) {
+        return;
+    }
+    let params = {
+        d: currentDict.value,
+        s: queryKeyword.value,
+    };
+    if (backKeyword.value.length) {
+        params.back = backKeyword.value[backKeyword.value.length - 1];
+    }
+    router.push({ path: route.path, query: params });
     axios
         .get("/query", {
-            params: {
-                d: queryKey.currentDict,
-                s: queryKey.queryKeyword,
-            },
+            params: params,
         })
         .then((response) => {
             if (response.data.result) {
@@ -105,23 +133,44 @@ const menuOptions = computed(() => {
 });
 
 onMounted(() => {
-    axios.get("/dicts").then(async (response) => {
+    axios.get("/dicts").then((response) => {
         if (response.data.lst) {
             availableDicts.value = allDicts.value = response.data.lst;
-            for (let i = 0; i < allDicts.value.length; i++) {
-                allDicts.value[i].thumbail = await fetchThumbail(i);
-            }
+            allDicts.value.map(async (item, index) => {
+                item.thumbail = await fetchThumbail(index);
+            });
         }
     });
+    if (route.query) {
+        searchKeyword.value = queryKeyword.value = route.query.s;
+        currentDict.value = route.query.d;
+        backKeyword.value = [route.query.back];
+        goQuery();
+    }
 });
 
 window.onresize = () => {
     collapsed.value = window.innerWidth <= 768;
 };
 
+window.addEventListener("message", (ev) => {
+    if (ev.data.go) {
+        if (!ev.data.back && ev.data.go != searchKeyword.value) {
+            backKeyword.value.push(queryKeyword.value);
+        }
+        if (ev.data.back) {
+            backKeyword.value.pop();
+        }
+        queryKeyword.value = ev.data.go;
+    }
+});
+
 watch(searchKeyword, loadHint);
 
-watch(queryKey, () => {
+watch(queryKeyword, fetchContent);
+watch(currentDict, () => {
+    backKeyword.value = [];
+    queryKeyword.value = searchKeyword.value;
     fetchContent();
 });
 </script>
@@ -141,14 +190,29 @@ watch(queryKey, () => {
             <n-auto-complete
                 v-model:value="searchKeyword"
                 :options="hint"
-                @keyup.enter="goQuery"
                 :clearable="true"
-                class="w-64 lg:w-80"
                 :input-props="{ autocomplete: 'disabled' }"
-                size="large"
-                placeholder="Press Enter to Go"
                 :loading="loadingHint"
             >
+                <template
+                    #default="{
+                        handleInput,
+                        handleBlur,
+                        handleFocus,
+                        value: slotValue,
+                    }"
+                >
+                    <n-input
+                        :value="slotValue"
+                        size="large"
+                        placeholder="Press Enter to Go"
+                        class="w-64 lg:w-80"
+                        @keyup.enter="goQuery"
+                        @input="handleInput"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                    />
+                </template>
                 <template #prefix>
                     <n-icon class="mr-1" :component="Search" />
                 </template>
@@ -173,7 +237,7 @@ watch(queryKey, () => {
                     :collapsed-width="64"
                     :collapsed="collapsed"
                     :collapsed-icon-size="22"
-                    v-model:value="queryKey.currentDict"
+                    v-model:value="currentDict"
                     :options="menuOptions"
                 />
             </n-scrollbar>
@@ -189,7 +253,7 @@ watch(queryKey, () => {
                     ></iframe>
                 </div>
                 <div class="main-content" v-else-if="loadingContent">
-                    <n-skeleton height="2.5rem" width="20vw" class="mb-8" />
+                    <n-skeleton height="2.5rem" width="20vw" class="mb-6" />
                     <n-skeleton class="mt-2" text :repeat="4" />
                 </div>
                 <div class="main-content" v-else>

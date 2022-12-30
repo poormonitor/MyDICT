@@ -10,6 +10,7 @@ from func import (
     fixResource,
     fetchStatic,
     transCap,
+    addBack
 )
 from typing import List, Optional
 
@@ -49,9 +50,11 @@ def thumbail(d: int):
 
 
 @router.get("/query", response_model=SearchResult, tags=["query"])
-def query(s: str, d: int):
+def query(s: str, d: int, back: Optional[str] = None):
     result = queryDict(s, d)
     exp = [fixResource(d, i) for i in result]
+    if exp and back:
+        exp[0] = addBack(exp[0], back)
     return SearchResult(result=exp)
 
 

@@ -3,7 +3,7 @@ import { message } from "./discrete";
 
 const instance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
-    timeout: 1000,
+    timeout: 10000,
 });
 
 instance.interceptors.response.use(

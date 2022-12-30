@@ -1,3 +1,22 @@
 .main-content {
-  @apply mx-6 my-4 md:mx-12 md:my-6 lg:mx-20 lg:my-10 overflow-clip h-full w-auto;
+    @apply mx-6 mt-4 mb-8 md:mx-12 md:mt-6 md:mb-12 lg:mx-20 lg:mt-10 lg:mb-20 overflow-x-clip h-full w-auto;
+}
+
+.goBack {
+    @apply mb-1 inline-block no-underline px-2 py-1 bg-blue-400 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-500 hover:shadow-lg focus:bg-blue-500 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-600 active:shadow-lg transition duration-150 ease-in-out;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 0 6px #aaa;
+    border: 2px solid transparent;
+    border-radius: 5px !important;
 }
