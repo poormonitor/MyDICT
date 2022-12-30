@@ -1,1 +1,1 @@
-.main-content{margin:1rem 1.5rem;height:100%;width:auto;overflow-x:clip}@media (min-width:768px){.main-content{margin:1.5rem 3rem}}@media (min-width:1024px){.main-content{margin:2.5rem 5rem}}
+.main-content{margin:1rem 1.5rem;height:100%;width:auto;overflow:clip}@media (min-width:768px){.main-content{margin:1.5rem 3rem}}@media (min-width:1024px){.main-content{margin:2.5rem 5rem}}

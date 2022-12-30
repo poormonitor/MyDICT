@@ -15,9 +15,12 @@ from mdict.mdict_query import IndexBuilder
 class Dictionary:
     name: str
     path: str
+    version: str
+    description: str
     thumbail: str
     dirname: str
     order: Optional[int]
+    builder: IndexBuilder
     resources: List[str]
 
     def __repr__(self):
@@ -25,16 +28,23 @@ class Dictionary:
 
     def __init__(
         self,
-        name: str,
         path: str,
+        builder: IndexBuilder,
         dirname: str,
         thumbail: str = None,
+        basename: str = "",
         resources: Dict[str, str] = {},
     ):
-        self.name = name
         self.path = path
+        self.builder = builder
+        self.name = builder._title
+        self.version = builder._version
+        self.description = builder._description
         self.dirname = dirname
         self.resources = resources
+
+        if self.name.startswith("Title"):
+            self.name = basename
 
         if not thumbail:
             self.thumbail = os.path.join(os.path.dirname(__file__), "default.jpg")
@@ -70,17 +80,21 @@ def getAllResources(path: str) -> Dict[str, str]:
 def getAllDictionaries() -> Dict[str, Dictionary]:
     dicts_path = os.path.join(os.path.dirname(__file__), "dicts/")
     found_dict = {}
-    for i in os.listdir(dicts_path):
+    list_dir = os.listdir(dicts_path)
+    list_dir.sort()
+    for i in list_dir:
         if os.path.isdir(dict_path := os.path.join(dicts_path, i)):
             resources = getAllResources(dict_path)
             for j in resources.keys():
                 name, ext = os.path.splitext(j)
                 file_path = resources[j]
                 if ext == ".mdx":
+                    builder = IndexBuilder(file_path)
                     if image := hasThumbail(file_path, name):
                         dict = Dictionary(
                             path=file_path,
-                            name=name,
+                            builder=builder,
+                            basename=name,
                             dirname=os.path.basename(dict_path),
                             thumbail=image,
                             resources=resources,
@@ -88,8 +102,9 @@ def getAllDictionaries() -> Dict[str, Dictionary]:
                     else:
                         dict = Dictionary(
                             path=file_path,
+                            builder=builder,
+                            basename=name,
                             dirname=os.path.basename(dict_path),
-                            name=name,
                             resources=resources,
                         )
                     found_dict[dict.name] = dict
@@ -124,8 +139,7 @@ def getThumbail(d: int) -> str:
 
 @lru_cache(65535)
 def queryDict(s: str, d: int) -> List[str]:
-    path = getDict(d).path
-    builder = IndexBuilder(path)
+    builder = getDict(d).builder
     return fixRedirect(d, builder.mdx_lookup(s))
 
 
@@ -142,8 +156,7 @@ def queryDicts(s: str) -> List[Dictionary]:
 
 @lru_cache(4096)
 def getHint(s: str, d: int):
-    path = getDict(d).path
-    builder = IndexBuilder(path)
+    builder = getDict(d).builder
     return builder.get_mdx_keys("%s*" % s)
 
 
@@ -158,8 +171,7 @@ def getHints(s: str) -> List[str]:
 
 @cache
 def getResource(d: int, f: str) -> str:
-    path = getDict(d).path
-    builder = IndexBuilder(path)
+    builder = getDict(d).builder
     try:
         rs = builder.mdd_lookup(os.path.normpath("/" + f))[0]
     except:
@@ -241,16 +253,29 @@ def fixResource(d: int, content: str) -> str:
             if (src := img.get("src", None)) and not src.startswith("data:")
             else src
         )
-        
+
+    for a in soup.find_all("a"):
+        if a.get("href", None) and a["href"].startswith("sound://"):
+            new_url = "$MYDICT_API/resource?d=%d&r=%s" % (
+                d,
+                a["href"].replace("sound://", ""),
+            )
+            a["href"] = "javascript:new Audio('%s').play()" % (new_url)
+
     soup.body["class"] = "main-content"
 
     if not soup.head:
         soup.html.insert_before(soup.new_tag("head"))
 
     soup.head.append(
-        soup.new_tag(
-            "link", rel="stylesheet", type="text/css", href="universal.css"
-        )
+        soup.new_tag("link", rel="stylesheet", type="text/css", href="universal.css")
     )
 
     return str(soup)
+
+
+def transCap(s: str) -> str:
+    r = ""
+    for i in s:
+        r += i.lower() if i.isupper() else i.upper()
+    return r
