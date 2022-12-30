@@ -268,7 +268,7 @@ watch(currentDict, () => {
 
 <style>
 .main-container {
-    height: calc(100vh - 6rem - 1px);
+    height: calc(100vh - 5rem - 1px);
 }
 
 @media (min-width: 768px) {
