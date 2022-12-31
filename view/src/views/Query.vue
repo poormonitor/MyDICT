@@ -113,9 +113,6 @@ const fetchContent = () => {
 };
 
 onMounted(() => {
-    if (networkAvailable.value) {
-        availableDicts.value = allDicts.value;
-    }
     if (route.query) {
         searchKeyword.value = queryKeyword.value = route.query.s;
         currentDict.value = route.query.d;
@@ -147,7 +144,7 @@ window.addEventListener("message", (ev) => {
 
 watch(searchKeyword, loadHint);
 
-watch(networkAvailable, () => {
+watch(allDicts, () => {
     if (networkAvailable.value) {
         availableDicts.value = allDicts.value;
     }
@@ -160,6 +157,7 @@ watch(currentDict, () => {
 });
 
 const menuOptions = computed(() => {
+    if (!availableDicts.value) return;
     return availableDicts.value.map((item) => ({
         label: () => h(NEllipsis, null, { default: () => item.name }),
         key: item.order,
