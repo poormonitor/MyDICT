@@ -50,7 +50,7 @@ class Dictionary:
             self.name = basename
 
         if not thumbail:
-            self.thumbail = os.path.join(os.path.dirname(__file__), "default.jpg")
+            self.thumbail = os.path.join(os.path.dirname(__file__), "default.png")
         else:
             self.thumbail = thumbail
 
