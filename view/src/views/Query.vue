@@ -113,6 +113,9 @@ const fetchContent = () => {
 };
 
 onMounted(() => {
+    if (networkAvailable.value) {
+        availableDicts.value = allDicts.value;
+    }
     if (route.query) {
         searchKeyword.value = queryKeyword.value = route.query.s;
         currentDict.value = route.query.d;
