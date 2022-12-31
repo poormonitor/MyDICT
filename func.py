@@ -302,6 +302,9 @@ def fixResource(d: int, content: str) -> str:
     soup.head.append(
         soup.new_tag("link", rel="stylesheet", type="text/css", href="universal.css")
     )
+    soup.head.append(
+        soup.new_tag("script", src="darkreader.min.js")
+    )
 
     return str(soup)
 
@@ -313,7 +316,8 @@ def addBack(content: str, back: str) -> str:
         soup.new_tag(
             "a",
             **{
-                "href": "javascript:window.parent.postMessage({go: '%s', back: true})" % back,
+                "href": "javascript:window.parent.postMessage({go: '%s', back: true})"
+                % back,
                 "class": "goBack",
             },
         )
