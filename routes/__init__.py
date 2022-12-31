@@ -15,25 +15,34 @@ def init_app_routes(app: FastAPI):
     def index():
         return FileResponse(path="view/dist/index.html")
 
-    app.mount("/", StaticFiles(directory="view/dist"), name="static")
+    static_app = FastAPI()
+    static_app.mount("/", StaticFiles(directory="view/dist"), name="index")
+
+    @static_app.middleware("http")
+    async def add_cache_control_static(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "public, max-age=2592000"
+        return response
+
+    app.mount("/", static_app, name="static")
 
     @app.middleware("http")
     async def add_process_time_header(request: Request, call_next):
         start_time = time.time()
         response = await call_next(request)
         process_time = time.time() - start_time
-        response.headers["X-Process-Time"] = str(process_time)
+        response.headers["X-Process-Time"] = str(process_time * 1000)
         return response
 
     @app.middleware("http")
     async def add_cache_control(request: Request, call_next):
         response = await call_next(request)
         if "Cache-Control" not in response.headers:
-            if response.headers.get("Content-Type", None) == "application/json":
+            if response.headers.get("Content-Type", "") == "application/json":
                 response.headers["Cache-Control"] = "public, max-age=300"
             else:
                 for tp in ["image", "font", "css", "javascript"]:
-                    if tp in response.headers.get("Content-Type", None):
+                    if tp in response.headers.get("Content-Type", ""):
                         response.headers["Cache-Control"] = "public, max-age=2592000"
                         break
                 else:
