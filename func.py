@@ -296,8 +296,6 @@ def fixResource(d: int, content: str) -> str:
                     "href"
                 ].replace("entry://", "")
 
-    soup.body["class"] = "main-content"
-
     if not soup.head:
         soup.html.insert_before(soup.new_tag("head"))
 

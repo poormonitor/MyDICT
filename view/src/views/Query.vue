@@ -1,15 +1,25 @@
 <script setup>
 import { Search } from "@vicons/fa";
-import { ref, watch, onMounted, computed, h } from "vue";
+import {
+    ref,
+    watch,
+    onMounted,
+    computed,
+    h,
+    inject,
+    getCurrentInstance,
+} from "vue";
 import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
-import axios from "../axios";
 import { NAvatar, NEllipsis } from "naive-ui";
-import { Buffer } from "buffer";
+
+const instance = getCurrentInstance();
+const axios = instance.appContext.config.globalProperties.$axios;
+const networkAvailable = inject("networkAvailable");
 
 const route = useRoute();
 const router = useRouter();
 
-const allDicts = ref([]);
+const allDicts = inject("allDicts");
 const availableDicts = ref([]);
 
 const currentDict = ref();
@@ -74,20 +84,6 @@ const goQuery = async () => {
         });
 };
 
-const fetchThumbail = async (d) => {
-    return await axios
-        .get("/thumbail", { params: { d: d }, responseType: "arraybuffer" })
-        .then((response) => {
-            if (response.data) {
-                let content_type = response.headers["content-type"];
-                return (
-                    `data:${content_type};base64,` +
-                    Buffer.from(response.data, "binary").toString("base64")
-                );
-            }
-        });
-};
-
 const fetchContent = () => {
     loadingContent.value = true;
     if (!queryKeyword.value) {
@@ -116,29 +112,10 @@ const fetchContent = () => {
         });
 };
 
-const menuOptions = computed(() => {
-    return availableDicts.value.map((item) => ({
-        label: () => h(NEllipsis, null, { default: () => item.name }),
-        key: item.order,
-        icon: () =>
-            h(NAvatar, {
-                size: "small",
-                src: item.thumbail,
-                objectFit: "scale-down",
-                color: "#ffffff00",
-            }),
-    }));
-});
-
 onMounted(() => {
-    axios.get("/dicts").then((response) => {
-        if (response.data.lst) {
-            availableDicts.value = allDicts.value = response.data.lst;
-            allDicts.value.map(async (item, index) => {
-                item.thumbail = await fetchThumbail(index);
-            });
-        }
-    });
+    if (networkAvailable.value) {
+        availableDicts.value = allDicts.value;
+    }
     if (route.query) {
         searchKeyword.value = queryKeyword.value = route.query.s;
         currentDict.value = route.query.d;
@@ -170,10 +147,30 @@ window.addEventListener("message", (ev) => {
 
 watch(searchKeyword, loadHint);
 
+watch(networkAvailable, () => {
+    if (networkAvailable.value) {
+        availableDicts.value = allDicts.value;
+    }
+});
+
 watch(currentDict, () => {
     backKeyword.value = [];
     queryKeyword.value = searchKeyword.value;
     fetchContent();
+});
+
+const menuOptions = computed(() => {
+    return availableDicts.value.map((item) => ({
+        label: () => h(NEllipsis, null, { default: () => item.name }),
+        key: item.order,
+        icon: () =>
+            h(NAvatar, {
+                size: "small",
+                src: item.thumbail,
+                objectFit: "scale-down",
+                color: "#ffffff00",
+            }),
+    }));
 });
 </script>
 
