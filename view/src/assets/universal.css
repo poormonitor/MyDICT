@@ -1,9 +1,9 @@
 body {
-    @apply mx-6 mt-4 mb-8 md:mx-12 md:mt-6 md:mb-12 lg:mx-20 lg:mt-10 lg:mb-20 overflow-x-clip h-full w-auto;
+    @apply mx-6 mt-4 mb-8 md:mx-12 md:mt-6 md:mb-12 lg:mx-20 lg:mt-10 lg:mb-20 overflow-x-clip h-full w-auto !important;
 }
 
 html {
-    @apply h-full w-full;
+    @apply h-full w-full !important;
 }
 
 .goBack {
