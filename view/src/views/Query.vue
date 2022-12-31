@@ -191,6 +191,7 @@ watch(allDicts, () => {
 
 watch(currentDict, () => {
     backKeyword.value = [];
+    if (!searchKeyword.value) return;
     queryKeyword.value = searchKeyword.value;
     fetchContent();
 });
@@ -296,7 +297,10 @@ watch(darkMode, switchDarkness);
                 </n-layout-sider>
                 <n-layout>
                     <div class="h-full">
-                        <div class="h-full" v-if="!loadingContent && content">
+                        <div
+                            class="h-full"
+                            v-if="!loadingContent && content.length"
+                        >
                             <iframe
                                 width="100%"
                                 height="100%"
