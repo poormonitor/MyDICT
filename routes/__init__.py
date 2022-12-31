@@ -29,11 +29,11 @@ def init_app_routes(app: FastAPI):
     async def add_cache_control(request: Request, call_next):
         response = await call_next(request)
         if "Cache-Control" not in response.headers:
-            if response.headers["Content-Type"] == "application/json":
+            if response.headers.get("Content-Type", None) == "application/json":
                 response.headers["Cache-Control"] = "public, max-age=300"
             else:
                 for tp in ["image", "font", "css", "javascript"]:
-                    if tp in response.headers["Content-Type"]:
+                    if tp in response.headers.get("Content-Type", None):
                         response.headers["Cache-Control"] = "public, max-age=2592000"
                         break
                 else:
