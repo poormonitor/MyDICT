@@ -3,6 +3,9 @@ import { useRegisterSW } from "virtual:pwa-register/vue";
 import { ArrowAltCircleUpRegular } from "@vicons/fa";
 import { useNotification } from "naive-ui";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n({ useScope: "global" });
 
 const notification = useNotification();
 const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW({
@@ -28,10 +31,10 @@ const close = () => {
 onMounted(() => {
     if (offlineReady.value || needRefresh.value) {
         notification.create({
-            title: "New version available",
+            title: t("new-version"),
             content: () => (
                 <div class="flex flex-col gap-y-2">
-                    Click YES below to upgrade the APP now.
+                    {t("new-help")}
                     <div class="flex justify-end">
                         <n-button
                             on-click={close}
@@ -39,7 +42,7 @@ onMounted(() => {
                             secondary
                             type="tertiary"
                         >
-                            No
+                            {t("yes")}
                         </n-button>
                         <n-button
                             on-click={doRefresh}
@@ -47,7 +50,7 @@ onMounted(() => {
                             secondary
                             type="success"
                         >
-                            Yes
+                            {t("no")}
                         </n-button>
                     </div>
                 </div>

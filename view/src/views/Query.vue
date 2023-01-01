@@ -146,7 +146,7 @@ const switchDarknessOnLoad = async () => {
                     sepia: 10,
                 });
             });
-            setTimeout(resolve, 200);
+            setTimeout(resolve, 300);
         } else {
             return resolve();
         }

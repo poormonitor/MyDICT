@@ -46,6 +46,9 @@ export default defineConfig({
                     },
                 ],
             },
+            workbox: {
+                sourcemap: true,
+            },
         }),
     ],
     resolve: {

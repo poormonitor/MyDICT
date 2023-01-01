@@ -1,6 +1,9 @@
 <script setup>
 import { inject } from "vue";
 import { NetworkWired } from "@vicons/fa";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n({ useScope: "global" });
 
 const networkAvailable = inject("networkAvailable");
 </script>
@@ -9,8 +12,8 @@ const networkAvailable = inject("networkAvailable");
     <n-modal
         :show="!networkAvailable"
         :mask-closable="false"
-        title="Network not available"
-        content="The network is not available currently. Please check your connection."
+        :title="t('network-error')"
+        :content="t('network-help')"
         size="huge"
         :bordered="false"
         preset="dialog"
@@ -18,8 +21,10 @@ const networkAvailable = inject("networkAvailable");
         aria-modal="true"
         :closable="false"
     >
-    <template #icon>
-        <n-icon class="text-red-600 mr-1" size="1.5rem"><NetworkWired /></n-icon>
-    </template>
+        <template #icon>
+            <n-icon class="text-red-600 mr-1" size="1.5rem">
+                <NetworkWired />
+            </n-icon>
+        </template>
     </n-modal>
 </template>
