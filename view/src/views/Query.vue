@@ -97,10 +97,10 @@ const fetchContent = () => {
         d: currentDict.value,
         s: queryKeyword.value,
     };
+    router.push({ path: route.path, query: params });
     if (backKeyword.value.length) {
         params.back = backKeyword.value[backKeyword.value.length - 1];
     }
-    router.push({ path: route.path, query: params });
     axios
         .get("/query", {
             params: params,
