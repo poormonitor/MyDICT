@@ -50,7 +50,7 @@ watch(locale, (val) => {
 </script>
 
 <template>
-    <div class="absolute right-4 bottom-4 lg:top-4 z-10">
+    <div class="absolute right-4 bottom-4 lg:right-6 lg:top-6 z-10">
         <n-button @click="showSetting" circle>
             <template #icon>
                 <n-icon size="large"><cog /></n-icon>

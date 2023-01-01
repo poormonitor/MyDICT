@@ -7,6 +7,7 @@ from functools import cache, lru_cache
 from typing import Dict, List, Optional
 
 import chardet
+import difflib
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
 from fastapi.responses import FileResponse, RedirectResponse, Response
@@ -302,9 +303,7 @@ def fixResource(d: int, content: str) -> str:
     soup.head.append(
         soup.new_tag("link", rel="stylesheet", type="text/css", href="universal.css")
     )
-    soup.head.append(
-        soup.new_tag("script", src="darkreader.min.js")
-    )
+    soup.head.append(soup.new_tag("script", src="darkreader.min.js"))
 
     return str(soup)
 
@@ -327,8 +326,5 @@ def addBack(content: str, back: str) -> str:
     return str(soup)
 
 
-def transCap(s: str) -> str:
-    r = ""
-    for i in s:
-        r += i.lower() if i.isupper() else i.upper()
-    return r
+def strSim(s1: str, s2: str) -> float:
+    return difflib.SequenceMatcher(None, s1, s2).quick_ratio()

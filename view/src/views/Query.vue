@@ -111,8 +111,9 @@ const fetchContent = () => {
                 content.value = result.map((x) =>
                     x.replaceAll("$MYDICT_API", import.meta.env.VITE_API_URL)
                 );
-                loadingContent.value = false;
-                switchDarknessOnLoad(darkMode.value);
+                switchDarknessOnLoad(darkMode.value).then(() => {
+                    loadingContent.value = false;
+                });
             }
         });
 };
@@ -134,17 +135,22 @@ const switchDarkness = (val) => {
     }
 };
 
-const switchDarknessOnLoad = () => {
-    if (darkMode.value) {
-        iframeRef.value.forEach((e, i) => {
-            e.contentWindow.DarkReader.setFetchMethod(window.fetch);
-            e.contentWindow.DarkReader.enable({
-                brightness: 100,
-                contrast: 90,
-                sepia: 10,
+const switchDarknessOnLoad = async () => {
+    return new Promise((resolve, reject) => {
+        if (darkMode.value) {
+            iframeRef.value.forEach((e, i) => {
+                e.contentWindow.DarkReader.setFetchMethod(window.fetch);
+                e.contentWindow.DarkReader.enable({
+                    brightness: 100,
+                    contrast: 90,
+                    sepia: 10,
+                });
             });
-        });
-    }
+            setTimeout(resolve, 200);
+        } else {
+            return resolve();
+        }
+    });
 };
 
 onMounted(() => {
@@ -299,7 +305,8 @@ watch(darkMode, switchDarkness);
                     <div class="h-full">
                         <div
                             class="h-full"
-                            v-if="!loadingContent && content.length"
+                            v-show="!loadingContent"
+                            v-if="content.length"
                         >
                             <iframe
                                 width="100%"
@@ -310,7 +317,7 @@ watch(darkMode, switchDarkness);
                                 v-for="t in content"
                             ></iframe>
                         </div>
-                        <div class="main-content" v-else-if="loadingContent">
+                        <div class="main-content" v-if="loadingContent">
                             <n-skeleton
                                 height="2.5rem"
                                 width="20vw"
@@ -318,7 +325,7 @@ watch(darkMode, switchDarkness);
                             />
                             <n-skeleton class="mt-2" text :repeat="4" />
                         </div>
-                        <div class="main-content" v-else>
+                        <div class="main-content" v-else-if="!content.length">
                             <n-el class="text-center text-3xl p-10">
                                 {{ t("waiting-for-search") }}
                             </n-el>

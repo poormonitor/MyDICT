@@ -9,8 +9,8 @@ from func import (
     getHints,
     fixResource,
     fetchStatic,
-    transCap,
-    addBack
+    addBack,
+    strSim,
 )
 from typing import List, Optional
 
@@ -67,7 +67,7 @@ def dicts():
 @router.get("/hint", response_model=Hint, tags=["query"])
 def hint(s: str, start: Optional[int] = 0, limit: Optional[int] = 10):
     lst = getHints(s)
-    lst.sort(key=lambda x: (len(x), transCap(x)))
+    lst.sort(key=lambda x: strSim(x, s), reverse=True)
     return Hint(
         lst=lst[
             start
