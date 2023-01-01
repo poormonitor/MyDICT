@@ -66,7 +66,7 @@ const fetchDicts = () => {
 onMounted(() => {
     fetchDicts();
     if (
-        sessionStorage.getItem("darkmode_mydict") ||
+        sessionStorage.getItem("darkmode_mydict") === "true" ||
         (window.matchMedia &&
             window.matchMedia("(prefers-color-scheme: dark)").matches)
     ) {
