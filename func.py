@@ -195,10 +195,14 @@ def getResource(d: int, f: str) -> str:
     return rs
 
 
+def stripMark(s: str) -> str:
+    return s.replace('"', "").replace("'", "")
+
+
 def fixCSS(d: int, css: str) -> str:
     content = re.sub(
-        r"url\(\"(.*)\"\)",
-        lambda x: 'url("/api/resource?d=%d&r=%s")' % (d, x.group(1))
+        r"url\((.*)\)",
+        lambda x: 'url("/api/resource?d=%d&r=%s")' % (d, stripMark(x.group(1)))
         if not x.group(1).startswith("data:")
         else 'url("%s")' % x.group(1),
         css,
@@ -296,6 +300,11 @@ def fixResource(d: int, content: str) -> str:
                 a["href"] = "javascript:window.parent.postMessage({go: '%s'})" % a[
                     "href"
                 ].replace("entry://", "")
+            elif a["href"].startswith("#"):
+                a["href"] = (
+                    "javascript:document.querySelector('%s').scrollIntoView({behavior: 'smooth'})"
+                    % a["href"]
+                )
 
     if not soup.head:
         soup.html.insert_before(soup.new_tag("head"))
