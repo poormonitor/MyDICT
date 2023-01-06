@@ -201,7 +201,7 @@ def stripMark(s: str) -> str:
 
 def fixCSS(d: int, css: str) -> str:
     content = re.sub(
-        r"url\((.*)\)",
+        r"url\((?!data:)(.*)\)",
         lambda x: 'url("/api/resource?d=%d&r=%s")' % (d, stripMark(x.group(1)))
         if not x.group(1).startswith("data:")
         else 'url("%s")' % x.group(1),
