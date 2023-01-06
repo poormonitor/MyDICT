@@ -204,7 +204,7 @@ def fixCSS(d: int, css: str) -> str:
         r"url\((.*)\)",
         lambda x: 'url("/api/resource?d=%d&r=%s")' % (d, stripMark(x.group(1)))
         if not stripMark(x.group(1)).startswith("data:")
-        else 'url("%s")' % x.group(1),
+        else 'url(%s)' % x.group(1),
         css,
     )
     return content
