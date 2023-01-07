@@ -11,6 +11,7 @@ from func import (
     fetchStatic,
     addBack,
     strSim,
+    getVersion,
 )
 from typing import List, Optional
 
@@ -24,6 +25,7 @@ class ADict(BaseModel):
 
 class Dicts(BaseModel):
     lst: List[ADict] = Field(description="The dictionaries that MyDICT owns.")
+    version: str = Field(description="Current file version.")
 
 
 class AvailableDicts(BaseModel):
@@ -61,7 +63,7 @@ def query(s: str, d: int, back: Optional[str] = None):
 @router.get("/dicts", response_model=Dicts, tags=["query"])
 def dicts():
     lst = [ADict(name=i.name, order=i.order) for i in getDicts()]
-    return Dicts(lst=lst)
+    return Dicts(lst=lst, version=getVersion())
 
 
 @router.get("/hint", response_model=Hint, tags=["query"])

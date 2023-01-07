@@ -1,20 +1,12 @@
 <script setup lang="jsx">
 import { Search } from "@vicons/fa";
-import {
-    ref,
-    watch,
-    onMounted,
-    computed,
-    inject,
-    getCurrentInstance,
-} from "vue";
+import { ref, watch, onMounted, computed, inject } from "vue";
 import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n({ useScope: "global" });
 
-const instance = getCurrentInstance();
-const axios = instance.appContext.config.globalProperties.$axios;
+const axios = inject("axios");
 const networkAvailable = inject("networkAvailable");
 const darkMode = inject("darkMode");
 

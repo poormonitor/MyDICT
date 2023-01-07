@@ -1,5 +1,4 @@
 import axios from "axios";
-import { configProviderProps } from "naive-ui";
 import { ref } from "vue";
 import { message } from "./discrete";
 
@@ -15,9 +14,17 @@ export default {
 
         instance.interceptors.request.use(
             (config) => {
-                if (!networkAvailable.value && config.url != "/dicts") {
+                if (config.url === "/dicts") return config;
+
+                if (!networkAvailable.value) {
                     return Promise.reject("Network not available.");
                 }
+
+                let version = sessionStorage.getItem("mydict_version");
+                if (config.method === "get" && version) {
+                    config.params.v = version;
+                }
+
                 return config;
             },
             (error) => {
@@ -40,6 +47,7 @@ export default {
                 return Promise.reject(error);
             }
         );
-        app.config.globalProperties.$axios = instance;
+
+        app.provide("axios", instance);
     },
 };

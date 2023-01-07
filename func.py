@@ -56,6 +56,17 @@ class Dictionary:
             self.thumbail = thumbail
 
 
+@cache
+def getVersion() -> str:
+    try:
+        with open(
+            os.path.join(os.path.dirname(__file__), "dicts/", "version.txt")
+        ) as fp:
+            return fp.readline()
+    except:
+        return "1"
+
+
 def hasThumbail(file_path: str, name: str):
     EXTS = [".jpg", ".png", ".ico"]
     for i in EXTS:
@@ -202,9 +213,10 @@ def stripMark(s: str) -> str:
 def fixCSS(d: int, css: str) -> str:
     content = re.sub(
         r"url\((.*)\)",
-        lambda x: 'url("/api/resource?d=%d&r=%s")' % (d, stripMark(x.group(1)))
+        lambda x: 'url("/api/resource?d=%d&r=%s&v=%s")'
+        % (d, stripMark(x.group(1)), getVersion())
         if not stripMark(x.group(1)).startswith("data:")
-        else 'url(%s)' % x.group(1),
+        else "url(%s)" % x.group(1),
         css,
     )
     return content
@@ -269,21 +281,21 @@ def fixResource(d: int, content: str) -> str:
 
     for script in soup.find_all("script"):
         script["src"] = (
-            "$MYDICT_API/resource?d=%d&r=%s" % (d, script["src"])
+            "$MYDICT_API/resource?d=%d&r=%s&v=%s" % (d, script["src"], getVersion())
             if script.get("src", None)
             else ""
         )
 
     for link in soup.find_all("link", rel="stylesheet"):
         link["href"] = (
-            "$MYDICT_API/resource?d=%d&r=%s" % (d, link["href"])
+            "$MYDICT_API/resource?d=%d&r=%s&v=%s" % (d, link["href"], getVersion())
             if link.get("href", None)
             else ""
         )
 
     for img in soup.find_all("img"):
         img["src"] = (
-            "$MYDICT_API/resource?d=%d&r=%s" % (d, img["src"])
+            "$MYDICT_API/resource?d=%d&r=%s&v=%s" % (d, img["src"], getVersion())
             if (src := img.get("src", None)) and not src.startswith("data:")
             else src
         )
@@ -294,7 +306,11 @@ def fixResource(d: int, content: str) -> str:
                 file = a["href"].replace("sound://", "")
                 if a["href"].endswith(".spx"):
                     file = file + ".mp3"
-                new_url = "$MYDICT_API/resource?d=%d&r=%s" % (d, file)
+                new_url = "$MYDICT_API/resource?d=%d&r=%s&v=%s" % (
+                    d,
+                    file,
+                    getVersion(),
+                )
                 a["href"] = "javascript:new Audio('%s').play()" % (new_url)
             elif a["href"].startswith("entry://"):
                 a["href"] = "javascript:window.parent.postMessage({go: '%s'})" % a[
