@@ -62,7 +62,7 @@ def getVersion() -> str:
         with open(
             os.path.join(os.path.dirname(__file__), "dicts/", "version.txt")
         ) as fp:
-            return fp.readline()
+            return fp.readline().strip()
     except:
         return "1"
 
