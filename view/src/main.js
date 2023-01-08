@@ -4,6 +4,7 @@ import App from "./App.vue";
 import router from "./router";
 import axios from "./axios";
 import messages from "./i18n";
+import "default-passive-events";
 
 import "./assets/index.css";
 import "vfonts/Inter.css";
