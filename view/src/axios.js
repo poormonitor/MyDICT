@@ -34,6 +34,7 @@ export default {
 
         instance.interceptors.response.use(
             (response) => {
+                networkAvailable.value = true;
                 return response;
             },
             (error) => {
