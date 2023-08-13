@@ -154,8 +154,9 @@ onMounted(() => {
         currentDict.value = route.query.d;
         backKeyword.value = [route.query.back];
         goQuery();
+    } else {
+        inputRef.value.focus();
     }
-    inputRef.value.focus();
 });
 
 onBeforeRouteUpdate((to, from) => {

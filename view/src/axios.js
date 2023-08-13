@@ -33,14 +33,9 @@ export default {
         );
 
         instance.interceptors.response.use(
-            (response) => {
-                networkAvailable.value = true;
-                return response;
-            },
+            (response) => response,
             (error) => {
-                if (!error.response) {
-                    networkAvailable.value = false;
-                } else if (error.response.data.detail) {
+                if (error.response.data.detail) {
                     message.error(error.response.data.detail);
                 } else {
                     message.error(error.message);

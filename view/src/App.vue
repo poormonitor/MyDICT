@@ -81,7 +81,7 @@ if (
 }
 
 if (sessionStorage.getItem("locale_mydict")) {
-    locale = sessionStorage.getItem("locale_mydict");
+    locale.value = sessionStorage.getItem("locale_mydict");
 }
 
 fetchDicts();
