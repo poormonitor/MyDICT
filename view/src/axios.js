@@ -8,7 +8,7 @@ export default {
         app.provide("networkAvailable", networkAvailable);
 
         const instance = axios.create({
-            baseURL: import.meta.env.VITE_API_URL,
+            baseURL: "/api",
             timeout: 30000,
         });
 
