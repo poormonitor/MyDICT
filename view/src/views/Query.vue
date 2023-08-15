@@ -55,8 +55,12 @@ const queryHint = async () => {
 
 const goQuery = async () => {
     if (!hints.value.includes(searchKeyword.value)) {
-        if (queryKeyword.value != lastCheck.value) await queryHint();
-        if (!hints.value.includes(searchKeyword.value)) return;
+        if (searchKeyword.value != lastCheck.value) {
+            await queryHint();
+        }
+        if (!hints.value.includes(searchKeyword.value)) {
+            return (showHint.value = hints.value);
+        }
     }
 
     loadingContent.value = true;
@@ -206,7 +210,7 @@ watch(searchKeyword, () => {
     showHint.value = [];
     clearTimeout(hintTimeout);
     hintTimeout = setTimeout(async () => {
-        hint.value = [];
+        if (lastCheck.value == searchKeyword.value) return;
         loadingHint.value = true;
         await queryHint();
         showHint.value = hints.value;
