@@ -7,7 +7,8 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "postbuild": "npx tailwindcss -i ./src/assets/universal.css -o ./dist/universal.css --minify"
+        "buildcss": "npx tailwindcss -i ./src/assets/universal.css -o ./public/universal.css --minify",
+        "prebuild": "npx tailwindcss -i ./src/assets/universal.css -o ./public/universal.css --minify"
     },
     "dependencies": {
         "default-passive-events": "^2.0.0",
