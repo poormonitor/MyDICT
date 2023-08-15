@@ -7,16 +7,15 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n({ useScope: "global" });
 
 const axios = inject("axios");
-const networkAvailable = inject("networkAvailable");
 const darkMode = inject("darkMode");
 
 const route = useRoute();
 const router = useRouter();
 
-const allDicts = inject("allDicts");
+const allDicts = ref([]);
 const availableDicts = ref([]);
-
 const currentDict = ref();
+
 const searchKeyword = ref("");
 const queryKeyword = ref("");
 const backKeyword = ref([]);
@@ -24,6 +23,8 @@ const backKeyword = ref([]);
 const inputRef = ref();
 const iframeRef = ref([]);
 const hint = ref([]);
+const hints = computed(() => hint.value.map((item) => item[0]));
+const showHint = ref([]);
 const lastCheck = ref("");
 
 const content = ref([]);
@@ -33,20 +34,19 @@ const collapsed = ref(window.innerWidth <= 768);
 const loadingContent = ref(false);
 const loadingHint = ref(false);
 
-const loadHint = async () => {
-    hint.value = [];
-    if (!searchKeyword.value) {
-        return;
-    }
-    loadingHint.value = true;
+var hintTimeout;
+
+const queryHint = async () => {
+    if (!searchKeyword.value) return [];
+
     let currentKey = searchKeyword.value;
-    await axios
+
+    return await axios
         .get("/hint", {
             params: { s: currentKey },
         })
         .then((response) => {
-            if (response.data.lst && currentKey == searchKeyword.value) {
-                loadingHint.value = false;
+            if (currentKey == searchKeyword.value) {
                 hint.value = response.data.lst;
                 lastCheck.value = searchKeyword.value;
             }
@@ -54,37 +54,32 @@ const loadHint = async () => {
 };
 
 const goQuery = async () => {
-    if (queryKeyword.value != lastCheck.value) {
-        await loadHint();
+    if (!hints.value.includes(searchKeyword.value)) {
+        if (queryKeyword.value != lastCheck.value) await queryHint();
+        if (!hints.value.includes(searchKeyword.value)) return;
     }
-    if (!hint.value.includes(searchKeyword.value)) {
-        return;
-    }
+
     loadingContent.value = true;
     queryKeyword.value = searchKeyword.value;
-    axios
-        .get("/available", {
-            params: { s: queryKeyword.value },
-        })
-        .then((response) => {
-            if (response.data.lst) {
-                availableDicts.value = allDicts.value.filter((item) =>
-                    response.data.lst.includes(item.order)
-                );
-                let availables = availableDicts.value.map((item) => item.order);
-                if (!availables.includes(currentDict.value)) {
-                    currentDict.value = Math.min(...availables);
-                }
-                fetchContent();
-            }
-        });
+    availableDicts.value = allDicts.value.filter((item) =>
+        hint.value
+            .find((e) => e[0] == queryKeyword.value)[1]
+            .includes(item.order)
+    );
+
+    let availables = availableDicts.value.map((item) => item.order);
+    if (!availables.includes(currentDict.value)) {
+        currentDict.value = Math.min(...availables);
+    }
+
+    fetchContent();
 };
 
 const fetchContent = () => {
+    if (!queryKeyword.value) return;
+
     loadingContent.value = true;
-    if (!queryKeyword.value) {
-        return;
-    }
+
     let params = {
         d: currentDict.value,
         s: queryKeyword.value,
@@ -93,6 +88,7 @@ const fetchContent = () => {
     if (backKeyword.value.length) {
         params.back = backKeyword.value[backKeyword.value.length - 1];
     }
+
     axios
         .get("/query", {
             params: params,
@@ -101,7 +97,7 @@ const fetchContent = () => {
             if (response.data.result) {
                 let result = response.data.result;
                 content.value = result.map((x) =>
-                    x.replaceAll("$MYDICT_API", import.meta.env.VITE_API_URL)
+                    x.replaceAll("$MYDICT_API", "/api")
                 );
                 switchDarknessOnLoad(darkMode.value).then(() => {
                     loadingContent.value = false;
@@ -145,11 +141,37 @@ const switchDarknessOnLoad = async () => {
     });
 };
 
-onMounted(() => {
-    if (networkAvailable.value) {
-        availableDicts.value = allDicts.value;
-    }
-    if (route.query) {
+const fetchDicts = async () => {
+    await axios.get("/dicts").then((response) => {
+        if (response.data.lst) {
+            sessionStorage.setItem("mydict_version", response.data.version);
+            allDicts.value = response.data.lst;
+            allDicts.value.map(async (item, index) => {
+                item.thumbail = await fetchThumbail(index);
+            });
+        }
+    });
+};
+
+const fetchThumbail = async (d) => {
+    return await axios
+        .get("/thumbail", { params: { d: d }, responseType: "arraybuffer" })
+        .then((response) => {
+            if (response.data) {
+                const imageBuffer = response.data;
+                const blob = new Blob([imageBuffer], {
+                    type: response.headers["content-type"],
+                });
+                const imageUrl = URL.createObjectURL(blob);
+                return imageUrl;
+            }
+        });
+};
+
+onMounted(async () => {
+    await fetchDicts();
+    availableDicts.value = allDicts.value;
+    if (route.query.s) {
         searchKeyword.value = queryKeyword.value = route.query.s;
         currentDict.value = route.query.d;
         backKeyword.value = [route.query.back];
@@ -180,23 +202,25 @@ window.addEventListener("message", (ev) => {
     }
 });
 
-watch(searchKeyword, loadHint);
-
-watch(allDicts, () => {
-    if (networkAvailable.value) {
-        availableDicts.value = allDicts.value;
-    }
+watch(searchKeyword, () => {
+    showHint.value = [];
+    clearTimeout(hintTimeout);
+    hintTimeout = setTimeout(async () => {
+        hint.value = [];
+        loadingHint.value = true;
+        await queryHint();
+        showHint.value = hints.value;
+        loadingHint.value = false;
+    }, 500);
 });
 
 watch(currentDict, () => {
     backKeyword.value = [];
     if (!searchKeyword.value) return;
-    queryKeyword.value = searchKeyword.value;
     fetchContent();
 });
 
 const menuOptions = computed(() => {
-    if (!availableDicts.value) return;
     return availableDicts.value.map((item) => ({
         label: () => <n-ellipsis>{item.name}</n-ellipsis>,
         key: item.order,
@@ -237,7 +261,7 @@ watch(darkMode, switchDarkness);
                     </div>
                     <n-auto-complete
                         v-model:value="searchKeyword"
-                        :options="hint"
+                        :options="showHint"
                         :clearable="true"
                         :input-props="{ autocomplete: 'disabled' }"
                         :loading="loadingHint"

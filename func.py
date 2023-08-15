@@ -182,18 +182,19 @@ def queryDicts(s: str) -> List[Dictionary]:
 
 
 @lru_cache(4096)
-def getHint(s: str, d: int):
+def getHint(s: str, d: int) -> List[str]:
     builder = getDict(d).builder
     return builder.get_mdx_keys("%s*" % s)
 
 
 @lru_cache(4096)
-def getHints(s: str) -> List[str]:
+def getHints(s: str) -> Dict[str, List[int]]:
     dicts = getDicts()
-    hints = []
+    hints = {}
     for i in dicts:
-        hints += getHint(s, i.order)
-    return list(set(hints))
+        for j in getHint(s, i.order):
+            hints[j] = hints.get(j, []) + [i.order]
+    return hints
 
 
 @cache

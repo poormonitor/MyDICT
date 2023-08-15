@@ -1,12 +1,8 @@
 import axios from "axios";
-import { ref } from "vue";
 import { message } from "./discrete";
 
 export default {
     install: (app, options) => {
-        const networkAvailable = ref(true);
-        app.provide("networkAvailable", networkAvailable);
-
         const instance = axios.create({
             baseURL: "/api",
             timeout: 30000,
@@ -15,10 +11,6 @@ export default {
         instance.interceptors.request.use(
             (config) => {
                 if (config.url === "/dicts") return config;
-
-                if (!networkAvailable.value) {
-                    return Promise.reject("Network not available.");
-                }
 
                 let version = sessionStorage.getItem("mydict_version");
                 if (config.method === "get" && version) {

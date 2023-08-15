@@ -13,7 +13,7 @@ from func import (
     strSim,
     getVersion,
 )
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 router = APIRouter()
 
@@ -33,7 +33,7 @@ class AvailableDicts(BaseModel):
 
 
 class Hint(BaseModel):
-    lst: List[str] = Field(description="Hint for the search.")
+    lst: List[Tuple[str, List[int]]] = Field(description="Hint for the search.")
 
 
 class SearchResult(BaseModel):
@@ -68,8 +68,8 @@ def dicts():
 
 @router.get("/hint", response_model=Hint, tags=["query"])
 def hint(s: str, start: Optional[int] = 0, limit: Optional[int] = 10):
-    lst = getHints(s)
-    lst.sort(key=lambda x: strSim(x, s), reverse=True)
+    lst = list(getHints(s).items())
+    lst.sort(key=lambda x: strSim(x[0], s), reverse=True)
     return Hint(
         lst=lst[
             start
