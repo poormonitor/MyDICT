@@ -10,7 +10,7 @@ import chardet
 import difflib
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
-from fastapi.responses import FileResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, Response
 from pyffmpeg import FFmpeg
 
 from mdict.mdict_query import IndexBuilder

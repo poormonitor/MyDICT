@@ -89,6 +89,7 @@ const fetchContent = () => {
         s: queryKeyword.value,
     };
     router.push({ path: route.path, query: params });
+    
     if (backKeyword.value.length) {
         params.back = backKeyword.value[backKeyword.value.length - 1];
     }
@@ -269,6 +270,7 @@ watch(darkMode, switchDarkness);
                         :clearable="true"
                         :input-props="{ autocomplete: 'disabled' }"
                         :loading="loadingHint"
+                        blur-after-select
                     >
                         <template
                             #default="{
