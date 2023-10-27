@@ -46,7 +46,7 @@ const queryHint = async () => {
             params: { s: currentKey },
         })
         .then((response) => {
-            if (currentKey == searchKeyword.value) {
+            if (currentKey === searchKeyword.value) {
                 hint.value = response.data.lst;
                 lastCheck.value = searchKeyword.value;
             }
@@ -67,7 +67,7 @@ const goQuery = async () => {
     queryKeyword.value = searchKeyword.value;
     availableDicts.value = allDicts.value.filter((item) =>
         hint.value
-            .find((e) => e[0] == queryKeyword.value)[1]
+            .find((e) => e[0] === queryKeyword.value)[1]
             .includes(item.order)
     );
 
@@ -190,9 +190,9 @@ onBeforeRouteUpdate((to, from) => {
     document.title = to.query.s ? to.query.s + " - MyDICT" : "MyDICT";
 });
 
-window.onresize = () => {
-    collapsed.value = window.innerWidth <= 768;
-};
+window.addEventListener('resize', () => {
+   collapsed.value = window.innerWidth <= 768;
+});
 
 window.addEventListener("message", (ev) => {
     if (ev.data.go) {
@@ -211,7 +211,7 @@ watch(searchKeyword, () => {
     showHint.value = [];
     clearTimeout(hintTimeout);
     hintTimeout = setTimeout(async () => {
-        if (lastCheck.value == searchKeyword.value) return;
+        if (lastCheck.value === searchKeyword.value) return;
         loadingHint.value = true;
         await queryHint();
         showHint.value = hints.value;
