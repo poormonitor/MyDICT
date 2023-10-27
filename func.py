@@ -26,6 +26,7 @@ class Dictionary:
     order: Optional[int]
     builder: IndexBuilder
     resources: List[str]
+    keys: List[str]
 
     def __repr__(self):
         return "<Dict %d %s>" % (self.order, self.name)
@@ -46,6 +47,7 @@ class Dictionary:
         self.description = builder._description
         self.dirname = dirname
         self.resources = resources
+        self.keys = builder.get_mdx_keys()
 
         if self.name.startswith("Title"):
             self.name = basename
@@ -164,30 +166,28 @@ def fixRedirect(d: int, contents: List[str]) -> List[str]:
     return result
 
 
-@lru_cache(65535)
+@lru_cache(512)
 def queryDict(s: str, d: int) -> List[str]:
     builder = getDict(d).builder
     return fixRedirect(d, builder.mdx_lookup(s))
 
 
-@lru_cache(4096)
+@lru_cache(256)
 def queryDicts(s: str) -> List[Dictionary]:
     dicts = getDicts()
     rd = []
     for i in dicts:
-        rs = queryDict(s, i.order)
-        if rs:
+        if s in i.keys:
             rd.append(i)
     return rd
 
 
-@lru_cache(4096)
 def getHint(s: str, d: int) -> List[str]:
-    builder = getDict(d).builder
-    return builder.get_mdx_keys("%s*" % s)
+    keys = getDict(d).keys
+    return [i for i in keys if i.startswith(s)]
 
 
-@lru_cache(4096)
+@lru_cache(512)
 def getHints(s: str) -> Dict[str, List[int]]:
     dicts = getDicts()
     hints = {}
