@@ -9,8 +9,6 @@ const { t } = useI18n({ useScope: "global" });
 const axios = inject("axios");
 const darkMode = inject("darkMode");
 
-let source;
-
 const route = useRoute();
 const router = useRouter();
 
@@ -43,27 +41,16 @@ const queryHint = async () => {
 
     let currentKey = searchKeyword.value;
 
-    if (source) {
-        source.cancel("Operation canceled by the user.");
-    }
-
-    source = axios.CancelToken.source();
-
-    try {
-        const response = await axios.get("/hint", {
+    return await axios
+        .get("/hint", {
             params: { s: currentKey },
-            cancelToken: source.token,
+        })
+        .then((response) => {
+            if (currentKey === searchKeyword.value) {
+                hint.value = response.data.lst;
+                lastCheck.value = searchKeyword.value;
+            }
         });
-
-        if (currentKey === searchKeyword.value) {
-            hint.value = response.data.lst;
-            lastCheck.value = searchKeyword.value;
-        }
-    } catch (error) {
-        if (!axios.isCancel(error)) {
-            console.error("Error fetching hint:", error.message);
-        }
-    }
 };
 
 const goQuery = async () => {

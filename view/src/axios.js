@@ -27,7 +27,7 @@ export default {
         instance.interceptors.response.use(
             (response) => response,
             (error) => {
-                if (error.response.data.detail) {
+                if (error.response?.data?.detail) {
                     message.error(error.response.data.detail);
                 } else {
                     message.error(error.message);
