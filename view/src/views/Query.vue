@@ -9,6 +9,8 @@ const { t } = useI18n({ useScope: "global" });
 const axios = inject("axios");
 const darkMode = inject("darkMode");
 
+let source;
+
 const route = useRoute();
 const router = useRouter();
 
@@ -41,16 +43,27 @@ const queryHint = async () => {
 
     let currentKey = searchKeyword.value;
 
-    return await axios
-        .get("/hint", {
+    if (source) {
+        source.cancel("Operation canceled by the user.");
+    }
+
+    source = axios.CancelToken.source();
+
+    try {
+        const response = await axios.get("/hint", {
             params: { s: currentKey },
-        })
-        .then((response) => {
-            if (currentKey === searchKeyword.value) {
-                hint.value = response.data.lst;
-                lastCheck.value = searchKeyword.value;
-            }
+            cancelToken: source.token,
         });
+
+        if (currentKey === searchKeyword.value) {
+            hint.value = response.data.lst;
+            lastCheck.value = searchKeyword.value;
+        }
+    } catch (error) {
+        if (!axios.isCancel(error)) {
+            console.error("Error fetching hint:", error.message);
+        }
+    }
 };
 
 const goQuery = async () => {
@@ -89,7 +102,7 @@ const fetchContent = () => {
         s: queryKeyword.value,
     };
     router.push({ path: route.path, query: params });
-    
+
     if (backKeyword.value.length) {
         params.back = backKeyword.value[backKeyword.value.length - 1];
     }
@@ -190,8 +203,8 @@ onBeforeRouteUpdate((to, from) => {
     document.title = to.query.s ? to.query.s + " - MyDICT" : "MyDICT";
 });
 
-window.addEventListener('resize', () => {
-   collapsed.value = window.innerWidth <= 768;
+window.addEventListener("resize", () => {
+    collapsed.value = window.innerWidth <= 768;
 });
 
 window.addEventListener("message", (ev) => {
@@ -270,6 +283,7 @@ watch(darkMode, switchDarkness);
                         :clearable="true"
                         :input-props="{ autocomplete: 'disabled' }"
                         :loading="loadingHint"
+                        @select="goQuery"
                         blur-after-select
                     >
                         <template
