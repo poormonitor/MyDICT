@@ -364,9 +364,9 @@ watch(darkMode, switchDarkness);
                 </n-layout>
             </n-layout>
             <n-layout class="main-container block sm:hidden">
-                <n-layout-header bordered position="absolute" class="h-12 p-1">
+                <n-layout-header bordered position="absolute" class="h-12">
                     <n-scrollbar x-scrollable class="overflow-y-hidden">
-                        <n-breadcrumb class="mx-1" separator>
+                        <n-breadcrumb class="m-1 ml-2" separator>
                             <n-breadcrumb-item
                                 :clickable="true"
                                 @click="() => (currentDict = item.key)"
@@ -379,7 +379,7 @@ watch(darkMode, switchDarkness);
                                     <component class="" :is="item.icon()" />
                                 </div>
                             </n-breadcrumb-item>
-                            <n-breadcrumb-item />
+                            <n-breadcrumb-item class="w-0" />
                         </n-breadcrumb>
                     </n-scrollbar>
                 </n-layout-header>
