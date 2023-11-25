@@ -2,6 +2,7 @@
 import { Search } from "@vicons/fa";
 import { ref, watch, onMounted, computed, inject } from "vue";
 import { useRoute, useRouter, onBeforeRouteUpdate } from "vue-router";
+import { useThemeVars } from "naive-ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n({ useScope: "global" });
@@ -11,6 +12,11 @@ const darkMode = inject("darkMode");
 
 const route = useRoute();
 const router = useRouter();
+const themeVars = useThemeVars();
+const hoverColor = computed(() => {
+    let color = themeVars.value.primaryColor;
+    return color.slice(0, color.length - 2) + "1a";
+});
 
 const allDicts = ref([]);
 const availableDicts = ref([]);
@@ -304,7 +310,7 @@ watch(darkMode, switchDarkness);
             <n-divider class="divider-line" />
         </n-layout-header>
         <n-layout-content>
-            <n-layout has-sider class="main-container">
+            <n-layout has-sider class="main-container hidden sm:block">
                 <n-layout-sider
                     bordered
                     collapse-mode="width"
@@ -357,11 +363,67 @@ watch(darkMode, switchDarkness);
                     </div>
                 </n-layout>
             </n-layout>
+            <n-layout class="main-container block sm:hidden">
+                <n-layout-header bordered position="absolute" class="h-12 p-1">
+                    <n-scrollbar x-scrollable class="overflow-y-hidden">
+                        <n-breadcrumb class="mx-1" separator>
+                            <n-breadcrumb-item
+                                :clickable="true"
+                                @click="() => (currentDict = item.key)"
+                                :class="{
+                                    'breadcrumb-now': item.key === currentDict,
+                                }"
+                                v-for="item in menuOptions"
+                            >
+                                <div class="flex items-center">
+                                    <component class="" :is="item.icon()" />
+                                </div>
+                            </n-breadcrumb-item>
+                            <n-breadcrumb-item />
+                        </n-breadcrumb>
+                    </n-scrollbar>
+                </n-layout-header>
+                <n-layout position="absolute" class="!top-12">
+                    <div class="h-full">
+                        <div
+                            class="h-full"
+                            v-show="!loadingContent"
+                            v-if="content.length"
+                        >
+                            <iframe
+                                width="100%"
+                                height="100%"
+                                ref="iframeRef"
+                                @load="switchDarknessOnLoad"
+                                :srcdoc="t"
+                                v-for="t in content"
+                            ></iframe>
+                        </div>
+                        <div class="main-content" v-if="loadingContent">
+                            <n-skeleton
+                                height="2.5rem"
+                                width="20vw"
+                                class="mb-6"
+                            />
+                            <n-skeleton class="mt-2" text :repeat="4" />
+                        </div>
+                        <div class="main-content" v-else-if="!content.length">
+                            <n-el class="text-center text-3xl p-10">
+                                {{ t("waiting-for-search") }}
+                            </n-el>
+                        </div>
+                    </div>
+                </n-layout>
+            </n-layout>
         </n-layout-content>
     </n-layout>
 </template>
 
 <style>
+.breadcrumb-now > .n-breadcrumb-item__link {
+    background-color: v-bind("hoverColor") !important;
+}
+
 .main-container {
     height: calc(100vh - 5rem - 1px);
 }

@@ -1,5 +1,5 @@
 body {
-    @apply px-6 pt-4 pb-8 md:px-12 md:pt-6 md:pb-12 lg:px-20 lg:pt-10 lg:pb-20 overflow-x-clip h-auto w-auto !important;
+    @apply px-4 pt-2 pb-8 md:px-12 md:pt-6 md:pb-14 lg:px-20 lg:pt-10 lg:pb-20 overflow-x-clip h-auto w-auto !important;
 }
 
 html {

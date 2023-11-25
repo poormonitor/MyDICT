@@ -1,7 +1,6 @@
 <script setup>
 import { ref, provide, inject, watch } from "vue";
 import { darkTheme } from "naive-ui";
-import { Buffer } from "buffer";
 import { zhCN, dateZhCN, enUS, dateEnUS } from "naive-ui";
 import { useI18n } from "vue-i18n";
 import Setting from "./components/Setting.vue";
@@ -23,6 +22,15 @@ const langConfig = computed(() => {
         },
     };
 });
+
+const themeOverrides = {
+    common: {
+        primaryColor: "#673AB7FF",
+        primaryColorHover: "#8B56ECFF",
+        primaryColorPressed: "#512DA8FF",
+        primaryColorSuppl: "#8B56ECFF",
+    },
+};
 
 watch(locale, (val) => {
     document.documentElement.setAttribute("lang", val);
@@ -46,6 +54,7 @@ if (sessionStorage.getItem("locale_mydict")) {
         :theme="darkMode ? darkTheme : null"
         :locale="langConfig[locale].locale"
         :date-locale="langConfig[locale].dateLocale"
+        :theme-overrides="themeOverrides"
     >
         <n-notification-provider>
             <n-dialog-provider>
