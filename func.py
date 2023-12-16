@@ -61,9 +61,8 @@ class Dictionary:
 @cache
 def getVersion() -> str:
     try:
-        with open(
-            os.path.join(os.path.dirname(__file__), "dicts/", "version.txt")
-        ) as fp:
+        file = os.path.join(os.path.dirname(__file__), "dicts/", "version.txt")
+        with open(file) as fp:
             return fp.readline().strip()
     except:
         return "1"
@@ -72,9 +71,8 @@ def getVersion() -> str:
 def hasThumbail(file_path: str, name: str):
     EXTS = [".jpg", ".png", ".ico"]
     for i in EXTS:
-        if os.path.exists(
-            (image := os.path.join(os.path.dirname(file_path), name + i))
-        ):
+        image = os.path.join(os.path.dirname(file_path), name + i)
+        if os.path.exists(image):
             return image
     return None
 
@@ -93,7 +91,6 @@ def getAllResources(path: str) -> Dict[str, str]:
     return resources
 
 
-@cache
 def getAllDictionaries() -> Dict[str, Dictionary]:
     dicts_path = os.path.join(os.path.dirname(__file__), "dicts/")
     found_dict = {}
@@ -130,9 +127,13 @@ def getAllDictionaries() -> Dict[str, Dictionary]:
     return found_dict
 
 
-@cache
-def getDicts() -> List[Dictionary]:
+def init_dictionary():
+    global dicts
     dicts = getAllDictionaries()
+
+
+def getDicts() -> List[Dictionary]:
+    global dicts
     d_values = list(dicts.values())
     d_values.sort(key=lambda x: x.dirname)
     for i, e in enumerate(d_values):
@@ -140,7 +141,6 @@ def getDicts() -> List[Dictionary]:
     return d_values
 
 
-@cache
 def getDict(d: int) -> Dictionary:
     dicts = getDicts()
     if d not in range(len(dicts)):
@@ -148,7 +148,6 @@ def getDict(d: int) -> Dictionary:
     return dicts[d]
 
 
-@cache
 def getThumbail(d: int) -> str:
     dicts = getDicts()
     return dicts[d].thumbail
@@ -172,16 +171,6 @@ def queryDict(s: str, d: int) -> List[str]:
     return fixRedirect(d, builder.mdx_lookup(s))
 
 
-@lru_cache(256)
-def queryDicts(s: str) -> List[Dictionary]:
-    dicts = getDicts()
-    rd = []
-    for i in dicts:
-        if s in i.keys:
-            rd.append(i)
-    return rd
-
-
 def getHint(s: str, d: int) -> List[str]:
     keys = getDict(d).keys
     return [i for i in keys if i.startswith(s)]
@@ -197,7 +186,7 @@ def getHints(s: str) -> Dict[str, List[int]]:
     return hints
 
 
-@cache
+@lru_cache(256)
 def getResource(d: int, f: str) -> str:
     builder = getDict(d).builder
     try:
@@ -241,7 +230,7 @@ def fixSPX(a: bytes) -> bytes:
     return b
 
 
-@cache
+@lru_cache(256)
 def fetchStatic(d: int, f: str) -> Response:
     headers = {"Cache-Control": "public, max-age=2592000"}
 

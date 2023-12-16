@@ -3,7 +3,6 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from func import (
     queryDict,
-    queryDicts,
     getThumbail,
     getDicts,
     getHints,
@@ -38,12 +37,6 @@ class Hint(BaseModel):
 
 class SearchResult(BaseModel):
     result: List[str] = Field(description="The content.")
-
-
-@router.get("/available", response_model=AvailableDicts, tags=["query"])
-def available(s: str):
-    lst = [i.order for i in queryDicts(s)]
-    return AvailableDicts(lst=lst)
 
 
 @router.get("/thumbail", tags=["query"])
