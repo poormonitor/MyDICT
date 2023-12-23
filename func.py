@@ -202,7 +202,7 @@ def stripMark(s: str) -> str:
 
 def fixCSS(d: int, css: str) -> str:
     content = re.sub(
-        r"url\((.*)\)",
+        r"url\((.*?)\)",
         lambda x: 'url("/api/resource?d=%d&r=%s&v=%s")'
         % (d, stripMark(x.group(1)), getVersion())
         if not stripMark(x.group(1)).startswith("data:")
@@ -340,6 +340,8 @@ def addBack(content: str, back: str) -> str:
         )
     )
     navi.a.string = "Go Back"
+    if not soup.body:
+        soup.html.insert_before(soup.new_tag("body"))
     soup.body.insert_before(navi)
     return str(soup)
 
