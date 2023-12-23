@@ -366,12 +366,15 @@ watch(darkMode, switchDarkness);
             <n-layout class="main-container block sm:hidden">
                 <n-layout-header bordered position="absolute" class="h-12">
                     <n-scrollbar x-scrollable class="overflow-y-hidden">
-                        <n-breadcrumb class="m-1 ml-2" separator>
+                        <n-breadcrumb class="m-1 mx-2" separator>
                             <n-breadcrumb-item
                                 :clickable="true"
                                 @click="() => (currentDict = item.key)"
                                 :class="{
                                     'breadcrumb-now': item.key === currentDict,
+                                    'last-dict':
+                                        item.key ===
+                                        menuOptions[menuOptions.length - 1].key,
                                 }"
                                 v-for="item in menuOptions"
                             >
@@ -379,7 +382,7 @@ watch(darkMode, switchDarkness);
                                     <component class="" :is="item.icon()" />
                                 </div>
                             </n-breadcrumb-item>
-                            <n-breadcrumb-item class="w-0" />
+                            <n-breadcrumb-item class="w-0 last-dict" />
                         </n-breadcrumb>
                     </n-scrollbar>
                 </n-layout-header>
@@ -420,6 +423,10 @@ watch(darkMode, switchDarkness);
 </template>
 
 <style>
+.last-dict > .n-breadcrumb-item__separator {
+    margin: 0 !important;
+}
+
 .breadcrumb-now > .n-breadcrumb-item__link {
     background-color: v-bind("hoverColor") !important;
 }
