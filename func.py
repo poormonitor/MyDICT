@@ -49,7 +49,7 @@ class Dictionary:
         self.resources = resources
         self.keys = builder.get_mdx_keys()
 
-        if self.name.startswith("Title"):
+        if not self.name or self.name.startswith("Title"):
             self.name = basename
 
         if not thumbail:
@@ -206,6 +206,7 @@ def fixCSS(d: int, css: str) -> str:
         lambda x: 'url("/api/resource?d=%d&r=%s&v=%s")'
         % (d, stripMark(x.group(1)), getVersion())
         if not stripMark(x.group(1)).startswith("data:")
+        and not stripMark(x.group(1)).startswith("//")
         else "url(%s)" % x.group(1),
         css,
     )
@@ -272,21 +273,23 @@ def fixResource(d: int, content: str) -> str:
     for script in soup.find_all("script"):
         script["src"] = (
             "$MYDICT_API/resource?d=%d&r=%s&v=%s" % (d, script["src"], getVersion())
-            if script.get("src", None)
-            else ""
+            if (src := script.get("src", None)) and not src.startswith("//")
+            else src
         )
 
     for link in soup.find_all("link", rel="stylesheet"):
         link["href"] = (
             "$MYDICT_API/resource?d=%d&r=%s&v=%s" % (d, link["href"], getVersion())
-            if link.get("href", None)
-            else ""
+            if (href := link.get("href", None)) and not href.startswith("//")
+            else href
         )
 
     for img in soup.find_all("img"):
         img["src"] = (
             "$MYDICT_API/resource?d=%d&r=%s&v=%s" % (d, img["src"], getVersion())
-            if (src := img.get("src", None)) and not src.startswith("data:")
+            if (src := img.get("src", None))
+            and not src.startswith("data:")
+            and not src.startswith("//")
             else src
         )
 
