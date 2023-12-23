@@ -39,7 +39,11 @@ def init_app_routes(app: FastAPI):
         response = await call_next(request)
         if "Cache-Control" not in response.headers:
             if response.headers.get("Content-Type", "") == "application/json":
-                response.headers["Cache-Control"] = "public, max-age=300"
+                # do not apply to route /dicts
+                if request.url.path == "/api/dicts":
+                    response.headers["Cache-Control"] = "no-store"
+                else:
+                    response.headers["Cache-Control"] = "public, max-age=300"
             else:
                 for tp in ["image", "font", "css", "javascript"]:
                     if tp in response.headers.get("Content-Type", ""):
