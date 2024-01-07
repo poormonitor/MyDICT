@@ -47,7 +47,7 @@ class Dictionary:
         self.description = builder._description
         self.dirname = dirname
         self.resources = resources
-        self.keys = builder.get_mdx_keys()
+        self.keys = {i: True for i in builder.get_mdx_keys()}
 
         if not self.name or self.name.startswith("Title"):
             self.name = basename
