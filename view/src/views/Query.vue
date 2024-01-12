@@ -294,6 +294,7 @@ watch(darkMode, switchDarkness);
                                 size="large"
                                 autosize
                                 class="w-48 md:w-60 lg:w-80"
+                                :input-props="{ spellcheck: 'false' }"
                                 @keyup.enter="goQuery"
                                 @input="handleInput"
                                 @focus="handleFocus"

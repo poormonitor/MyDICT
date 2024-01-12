@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from fastapi import HTTPException
 from fastapi.responses import FileResponse, Response
 from pyffmpeg import FFmpeg
+from marisa_trie import Trie
 
 from mdict.mdict_query import IndexBuilder
 
@@ -26,7 +27,7 @@ class Dictionary:
     order: Optional[int]
     builder: IndexBuilder
     resources: List[str]
-    keys: List[str]
+    trie: List[str]
 
     def __repr__(self):
         return "<Dict %d %s>" % (self.order, self.name)
@@ -47,7 +48,7 @@ class Dictionary:
         self.description = builder._description
         self.dirname = dirname
         self.resources = resources
-        self.keys = {i: True for i in builder.get_mdx_keys()}
+        self.trie = Trie(builder.get_mdx_keys())
 
         if not self.name or self.name.startswith("Title"):
             self.name = basename
@@ -172,8 +173,8 @@ def queryDict(s: str, d: int) -> List[str]:
 
 
 def getHint(s: str, d: int) -> List[str]:
-    keys = getDict(d).keys
-    return [i for i in keys if i.startswith(s)]
+    hint = getDict(d).trie.keys(s)
+    return hint
 
 
 @lru_cache(512)
