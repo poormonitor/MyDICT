@@ -96,9 +96,7 @@ const fetchContent = () => {
     };
     router.push({ path: route.path, query: params });
 
-    if (backKeyword.value.length) {
-        params.back = backKeyword.value[backKeyword.value.length - 1];
-    }
+    if (backKeyword.value.length) params.back = backKeyword.value.slice(-1)[0];
 
     axios
         .get("/query", {
@@ -185,7 +183,6 @@ onMounted(async () => {
     if (route.query.s) {
         searchKeyword.value = queryKeyword.value = route.query.s;
         currentDict.value = route.query.d;
-        backKeyword.value = [route.query.back];
         goQuery();
     } else {
         inputRef.value.focus();
@@ -226,7 +223,14 @@ watch(searchKeyword, () => {
 });
 
 watch(currentDict, () => {
-    backKeyword.value = [];
+    console.log(searchKeyword.value, queryKeyword.value, backKeyword.value);
+    if (
+        searchKeyword.value !== queryKeyword.value &&
+        backKeyword.value.length
+    ) {
+        queryKeyword.value = backKeyword.value[0];
+        backKeyword.value = [];
+    }
     if (!searchKeyword.value) return;
     fetchContent();
 });
