@@ -223,7 +223,6 @@ watch(searchKeyword, () => {
 });
 
 watch(currentDict, () => {
-    console.log(searchKeyword.value, queryKeyword.value, backKeyword.value);
     if (
         searchKeyword.value !== queryKeyword.value &&
         backKeyword.value.length
