@@ -133,6 +133,7 @@ def init_dictionary():
     dicts = getAllDictionaries()
 
 
+@cache
 def getDicts() -> List[Dictionary]:
     global dicts
     d_values = list(dicts.values())

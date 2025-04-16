@@ -219,7 +219,7 @@ watch(searchKeyword, () => {
         await queryHint();
         showHint.value = hints.value;
         loadingHint.value = false;
-    }, 500);
+    }, 300);
 });
 
 watch(currentDict, () => {
